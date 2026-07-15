@@ -1,0 +1,108 @@
+# ============================================================
+# AC Watcher config — Midea PortaSplit 12000 BTU
+# Edit the values marked CHANGE-ME. Everything else is ready to run.
+# ============================================================
+
+product:
+  name: "Midea PortaSplit 12000 BTU (3.5 kW / 105 m³ version)"
+  # Keywords used to positively match the right product on generic/search pages
+  # (there is also an 8000 BTU "Cool" 70m³ variant — we must NOT match that one)
+  must_include: ["portasplit"]
+  must_include_any: ["12000", "12.000", "105 m", "105m"]
+  must_exclude: ["8000 btu", "70 m³", "70m³", "cool split"]
+  max_price_eur: 900
+
+location:
+  # Your location, used only to judge pickup feasibility (no car available)
+  address: "Karlsruhe, Germany"
+  latitude: 49.0069
+  longitude: 8.4037
+  max_walk_km: 4        # considered reachable on foot / with a hand trolley
+  max_taxi_km: 40        # considered reachable with a "big taxi" (Kombi/van, ~50kg box)
+  # Karlsruhe taxi companies with estate/van cars, for reference in notifications:
+  taxi_hint: "Ask for a 'Kombi' or van-class taxi — the unit ships as one ~60kg box (~80x70x70cm)"
+
+notifications:
+  # ntfy.sh is free, needs no account. Install the ntfy app (iOS/Android),
+  # subscribe to the topic below (pick your own random topic name!).
+  ntfy_topic: "ac-watch-CHANGE-ME-xk29fz"
+  ntfy_server: "https://ntfy.sh"
+
+  # Optional second channel (more reliable delivery, ~5 EUR one-time on iOS/Android)
+  pushover_enabled: false
+  pushover_user_key: "CHANGE-ME"
+  pushover_api_token: "CHANGE-ME"
+
+check_interval_seconds: 240   # 4 minutes. Don't go much lower — be a good citizen.
+jitter_seconds: 45            # random +/- jitter added to each interval, less bot-like
+
+# Each target is checked with the "checker" type indicated.
+# pickup_only: true  -> listing has no shipping, distance from `location` matters
+# pickup_only: false -> normal delivery, distance doesn't matter
+targets:
+
+  - name: "Amazon.de (variant 1)"
+    type: "generic_page"
+    url: "https://www.amazon.de/dp/B0GX16LKSC"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "Jetzt kaufen"]
+    out_of_stock_markers: ["Zurzeit nicht auf Lager", "Derzeit nicht verfügbar"]
+
+  - name: "Amazon.de (variant 2)"
+    type: "generic_page"
+    url: "https://www.amazon.de/dp/B0D3PP64JS"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "Jetzt kaufen"]
+    out_of_stock_markers: ["Zurzeit nicht auf Lager", "Derzeit nicht verfügbar"]
+
+  - name: "MediaMarkt.de"
+    type: "generic_page"
+    url: "https://www.mediamarkt.de/de/product/_midea-portasplit-split-klimaanlage-mondweiss-max-raumgrosse-105-m-3035465.html"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "Lieferung möglich", "Abholung heute möglich"]
+    out_of_stock_markers: ["Leider keine Lieferung möglich", "Ausverkauft", "Zur Zeit nicht verfügbar"]
+
+  - name: "Saturn.de"
+    type: "generic_page"
+    url: "https://www.saturn.de/de/product/_midea-portasplit-split-klimaanlage-mondweiss-max-raumgrosse-105-m-3035465.html"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "Lieferung möglich"]
+    out_of_stock_markers: ["Leider keine Lieferung möglich", "Ausverkauft", "Zur Zeit nicht verfügbar"]
+
+  - name: "OBI.de"
+    type: "generic_page"
+    url: "https://www.obi.de/p/8620890/midea-mobile-split-klimaanlage-portasplit"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "Lieferbar", "Auf Lager"]
+    out_of_stock_markers: ["Ausverkauft", "Nicht verfügbar", "Zur Zeit nicht bestellbar"]
+
+  - name: "Bauhaus.info"
+    type: "generic_page"
+    url: "https://www.bauhaus.info/klimageraete/midea-klimasplitgeraet-portasplit/p/23511111"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "verfügbar"]
+    out_of_stock_markers: ["Ausverkauft", "nicht verfügbar", "nicht lieferbar"]
+
+  - name: "Böttcher AG"
+    type: "generic_page"
+    url: "https://www.bueromarkt-ag.de/klimageraet_midea_portasplit_12000_btuh,p-11647.html"
+    pickup_only: false
+    in_stock_markers: ["In den Warenkorb", "sofort lieferbar"]
+    out_of_stock_markers: ["nicht verfügbar", "benachrichtigen, sobald der Artikel verfügbar"]
+
+  - name: "eBay Kleinanzeigen (nationwide search)"
+    # Private resale listings. Many require local pickup -> distance matters.
+    # We geocode each listing's stated location and filter both by price and distance.
+    type: "kleinanzeigen_search"
+    url: "https://www.kleinanzeigen.de/s-midea-portasplit/k0"
+    pickup_only: true   # overridden per-listing: if a listing offers shipping ("Versand möglich") we treat it as pickup_only=false automatically
+
+  - name: "bestell.bar aggregator (multi-retailer restock tracker)"
+    # This site already tracks Amazon/BAUHAUS/toom/OBI/Joybuy stock for this exact
+    # product and shows a live availability map for Germany. We just re-check it
+    # as a cheap cross-check / early-warning signal in addition to the direct checks above.
+    type: "generic_page"
+    url: "https://www.bestell.bar/p/MTpH/midea-portasplit"
+    pickup_only: false
+    in_stock_markers: ["Bestellbar"]
+    out_of_stock_markers: ["Ausverkauft"]

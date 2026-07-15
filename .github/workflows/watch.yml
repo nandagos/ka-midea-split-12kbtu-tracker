@@ -1,0 +1,42 @@
+name: AC Watcher
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub may delay this by a few minutes at busy
+    # times (e.g. exactly on the hour) — that's normal and fine for this use case.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}   # lets you trigger a manual run from the Actions tab
+
+permissions:
+  contents: write   # needed so the workflow can commit state.json back
+
+concurrency:
+  group: ac-watcher
+  cancel-in-progress: false   # never cancel a half-finished check
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run a single check pass
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python main.py --once
+
+      - name: Commit updated state.json (if changed)
+        run: |
+          git config user.name "ac-watcher-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state.json
+          git diff --staged --quiet || git commit -m "Update watcher state"
+          git push
