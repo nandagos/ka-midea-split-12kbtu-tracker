@@ -67,10 +67,13 @@ def evaluate_and_notify(result: checkers.CheckResult, config: dict, state: State
     was_buyable = state.get(state_key, False)
 
     price_str = f"{result.price_eur:.2f} €" if result.price_eur else "price unknown"
+    confidence_note = ""
+    if "LOW-CONFIDENCE" in result.reason:
+        confidence_note = " | ⚠ UNVERIFIED — double check the listing before buying"
 
     if buyable and not was_buyable:
         title = f"🟢 AC AVAILABLE — {result.target_name}"
-        message = f"{price_str} — {config['product']['name']}{pickup_note}"
+        message = f"{price_str} — {config['product']['name']}{pickup_note}{confidence_note}"
         log.info("NOTIFY: %s | %s | %s", title, message, result.url)
         notifier.notify_all(config, title, message, url=result.url)
     elif buyable:

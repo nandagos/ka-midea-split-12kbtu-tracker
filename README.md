@@ -171,6 +171,32 @@ state next run.
   "sold out" text it currently uses, and update `in_stock_markers` /
   `out_of_stock_markers` in `config.yaml` — no code changes needed.
 
+## Known limitations
+
+- **Some retailers block cloud/CI IP ranges outright (HTTP 403).** MediaMarkt.de,
+  Saturn.de, and Bauhaus.info were observed returning 403 when polled from
+  GitHub Actions — this is bot-detection (Akamai/PerimeterX-style) rejecting
+  the request based on the runner's IP, not a bug in the scraper, and no
+  amount of header-tweaking reliably fixes it. The script treats this as a
+  "blocked, not a stock signal" result (logged once, not retried, no crash)
+  rather than pretending it means anything about availability. If those
+  three matter a lot to you, your realistic options are: (a) rely on
+  Amazon.de, OBI.de, Böttcher AG, Kleinanzeigen, and bestell.bar instead
+  (they don't block GitHub's IPs), or (b) run just those specific targets
+  from your own home network instead of GitHub Actions (residential IPs
+  are far less likely to be blocklisted) — ask if you want a small
+  standalone script for that.
+- **Stock detection prefers schema.org JSON-LD structured data** (the same
+  machine-readable "Product"/"Offer" markup Google uses for search rich
+  snippets) over scanning visible page text, specifically because text
+  scanning can false-positive on unrelated "add to cart" buttons in
+  cross-sell/recommended-product widgets elsewhere on the page — this is
+  exactly what caused an early false "in stock" alert for OBI.de. When a
+  page doesn't provide structured data, the script falls back to your
+  configured text markers but tags that result as low-confidence in both
+  the logs and the push notification itself (⚠ UNVERIFIED) — treat those
+  as "worth a look," not "confirmed in stock."
+
 ## Files
 
 ```
